@@ -86,37 +86,33 @@ app.delete('/api/task/:id', (req, res) => {
 
     con.query(sql_delete, (err, result, fields) => {
         if (err) throw err
-        console.log('delete')
-        console.log(result)
-    })
-
-    // 一覧取得
-    let sortArr = []
-    const sql_list = 'SELECT * FROM task ORDER BY orderno'
-    con.query(sql_list, function (err, result, fields) {  
-        if (err) throw err
-
-        sortArr = result.map((task, index) => {
-            return {
-                id: task.id,
-                params: {
-                    orderno: index + 1
+        
+        const sql_list = 'SELECT * FROM task ORDER BY orderno'
+        con.query(sql_list, function (err, result, fields) {
+            if (err) throw err
+    
+            const sortArr = result.map((task, index) => {
+                return {
+                    id: task.id,
+                    params: {
+                        orderno: index + 1
+                    }
                 }
+            })
+            
+            // 並び替え
+            for (const sortDict of sortArr) {
+                console.log('dict')
+                console.log(sortDict)
+                const sql = `UPDATE task SET ? WHERE id = ${sortDict.id}`
+                con.query(sql, sortDict.params, (err, result, fields) => {
+                    if (err) throw err
+                    console.log(result)
+                })
             }
         })
-
     })
-
-    // 並び替え
-    for (const sortDict of sortArr) {
-        console.log('dict')
-        console.log(sortDict)
-        const sql = `UPDATE task SET ? WHERE id = ${sortDict.id}`
-        con.query(sql, sortDict.params, (err, result, fields) => {
-            if (err) throw err
-            console.log(result)
-        })
-    }
+    
     res.send()
 })
 
