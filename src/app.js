@@ -20,11 +20,6 @@ const con = mysql.createConnection({
     database: 'todolist'
 })
 
-// con.connect(function(err) {
-//     if (err) throw err;
-//     console.log('Connected');
-// })
-
 // ヘルスチェック
 app.get('/', (req, res) => res.send('Hello World!'))
 
@@ -87,14 +82,42 @@ app.put('/api/task/:id', (req, res) => {
 
 // 削除
 app.delete('/api/task/:id', (req, res) => {
-    const sql = `DELETE FROM task WHERE id = ${req.params.id}`
+    const sql_delete = `DELETE FROM task WHERE id = ${req.params.id}`
 
-    con.query(sql, (err, result, fields) => {
+    con.query(sql_delete, (err, result, fields) => {
         if (err) throw err
+        console.log('delete')
         console.log(result)
-
-        res.send()
     })
+
+    // 一覧取得
+    let sortArr = []
+    const sql_list = 'SELECT * FROM task ORDER BY orderno'
+    con.query(sql_list, function (err, result, fields) {  
+        if (err) throw err
+
+        sortArr = result.map((task, index) => {
+            return {
+                id: task.id,
+                params: {
+                    orderno: index + 1
+                }
+            }
+        })
+
+    })
+
+    // 並び替え
+    for (const sortDict of sortArr) {
+        console.log('dict')
+        console.log(sortDict)
+        const sql = `UPDATE task SET ? WHERE id = ${sortDict.id}`
+        con.query(sql, sortDict.params, (err, result, fields) => {
+            if (err) throw err
+            console.log(result)
+        })
+    }
+    res.send()
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
